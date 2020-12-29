@@ -1,0 +1,13 @@
+[Unit]
+Description=Start application
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+Restart=always
+Type=simple
+ExecStart=/bin/bash /opt/application/application.sh
+
+[Install]
+WantedBy=multi-user.target
