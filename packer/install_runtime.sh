@@ -23,4 +23,4 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q \
     docker-ce \
     docker-ce-cli \
     containerd.io
-sudo systemctl status docker
+sudo systemctl status docker | cat

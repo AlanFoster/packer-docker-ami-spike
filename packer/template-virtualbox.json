@@ -1,0 +1,105 @@
+{
+  "variables": {
+    "preseed": "preseed.cfg",
+    "ssh_fullname": "vagrant",
+    "ssh_password": "vagrant",
+    "ssh_username": "vagrant",
+    "hostname": "hostname",
+    "domain": "domain"
+  },
+  "sensitive-variables": ["aws_access_key", "aws_secret_key"],
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "guest_os_type": "Ubuntu_64",
+      "iso_urls": [
+        "ubuntu-18.04.5-server-amd64.iso",
+        "http://cdimage.ubuntu.com/ubuntu/releases/bionic/release/ubuntu-18.04.5-server-amd64.iso"
+      ],
+      "iso_checksum": "sha256:8c5fc24894394035402f66f3824beb7234b757dd2b5531379cb310cedfdf0996",
+      "ssh_password": "{{user `ssh_password`}}",
+      "ssh_username": "{{user `ssh_username`}}",
+      "ssh_pty" : "true",
+      "ssh_wait_timeout": "10000s",
+      "headless": "false",
+      "shutdown_command": "echo 'packer' | sudo -S shutdown -P now",
+      "hard_drive_interface": "sata",
+      "http_directory": "packer/virtualbox",
+      "format": "ova",
+      "boot_command": [
+        "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "/install/vmlinuz<wait>",
+        " auto<wait>",
+        " console-setup/ask_detect=false<wait>",
+        " console-setup/layoutcode=us<wait>",
+        " console-setup/modelcode=pc105<wait>",
+        " debconf/frontend=noninteractive<wait>",
+        " debian-installer=en_US<wait>",
+        " fb=false<wait>",
+        " initrd=/install/initrd.gz<wait>",
+        " kbd-chooser/method=us<wait>",
+        " keyboard-configuration/layout=USA<wait>",
+        " keyboard-configuration/variant=USA<wait>",
+        " locale=en_US<wait>",
+        " netcfg/get_domain={{user `domain`}}<wait>",
+        " netcfg/get_hostname={{user `hostname`}}<wait>",
+        " grub-installer/bootdev=/dev/sda<wait>",
+        " noapic<wait>",
+        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg",
+        " -- <wait>",
+        "<enter><wait>"
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "execute_command": "echo '{{user `ssh_password`}}' | {{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+      "inline": [
+        "echo '%sudo    ALL=(ALL)  NOPASSWD:ALL' >> /etc/sudoers"
+      ]
+    },
+    {
+      "type": "shell",
+      "script": "packer/install_runtime.sh"
+    },
+
+    {
+      "type": "shell-local",
+      "inline": [
+        "mkdir -p tmp",
+        "tar vcf tmp/files.tar Dockerfile main.py Pipfile Pipfile.lock .dockerignore",
+        "tar vrf tmp/files.tar -C packer application.service application.sh"
+      ]
+    },
+    {
+      "type": "file",
+      "source": "tmp/",
+      "destination": "~/application.tar"
+    },
+    {
+      "inline": [
+        "sudo mkdir -p /opt/application",
+        "sudo tar xvf ~/application.tar -C /opt/application",
+        "rm ~/application.tar"
+      ],
+      "type": "shell"
+    },
+
+    {
+      "type": "shell",
+      "script": "packer/build_docker_images.sh"
+    },
+    {
+      "inline": [
+        "sudo systemctl link /opt/application/application.service",
+        "sudo systemctl enable application.service",
+        "sudo systemctl start application.service"
+      ],
+      "type": "shell"
+    }
+  ]
+}

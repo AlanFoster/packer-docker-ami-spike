@@ -1,3 +1,5 @@
 .env.json
 *.pem
 tmp
+packer_cache
+output-virtualbox-iso
