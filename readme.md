@@ -1,6 +1,6 @@
 ## Packer
 
-A quick spike of using Packer to build an image which runs a docker Docker on boot.
+A quick spike of using Packer to build an image which runs a Docker container on boot.
 
 ## Virtualbox
 
@@ -24,7 +24,7 @@ Building with variables:
 packer build packer/template-virtualbox.json
 ```
 
-Once finished the created ova can be found in `output-virtualbox-iso`.
+Once finished the created ova can be found in `output-virtualbox-iso`. You can log in with the username `vagrant` and password `password`
 
 ## AMI
 

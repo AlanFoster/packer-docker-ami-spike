@@ -24,3 +24,11 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q \
     docker-ce-cli \
     containerd.io
 sudo systemctl status docker | cat
+
+# Disable rpcinfo
+sudo systemctl stop rpcbind
+sudo systemctl disable rpcbind
+sudo systemctl mask rpcbind
+sudo systemctl stop rpcbind.socket
+sudo systemctl disable rpcbind.socket
+sudo systemctl status rpcbind | cat

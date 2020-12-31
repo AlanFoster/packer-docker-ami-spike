@@ -5,9 +5,10 @@
     "ssh_password": "vagrant",
     "ssh_username": "vagrant",
     "hostname": "hostname",
-    "domain": "domain"
+    "domain": "domain",
+    "memory": "1024",
+    "guest_additions_mode": "disable"
   },
-  "sensitive-variables": ["aws_access_key", "aws_secret_key"],
   "builders": [
     {
       "type": "virtualbox-iso",
@@ -21,16 +22,16 @@
       "ssh_username": "{{user `ssh_username`}}",
       "ssh_pty" : "true",
       "ssh_wait_timeout": "10000s",
-      "headless": "false",
+      "headless": "true",
       "shutdown_command": "echo 'packer' | sudo -S shutdown -P now",
       "hard_drive_interface": "sata",
       "http_directory": "packer/virtualbox",
       "format": "ova",
+      "memory": "{{ user `memory`}}",
+      "guest_additions_mode": "{{ user `guest_additions_mode`}}",
       "boot_command": [
-        "<enter><wait><f6><esc><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
-        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
-        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
-        "<bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs><bs>",
+        "<wait>",
+        "<esc><esc><enter><wait>",
         "/install/vmlinuz<wait>",
         " auto<wait>",
         " console-setup/ask_detect=false<wait>",
@@ -48,7 +49,7 @@
         " netcfg/get_hostname={{user `hostname`}}<wait>",
         " grub-installer/bootdev=/dev/sda<wait>",
         " noapic<wait>",
-        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg",
+        " preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/{{user `preseed`}}",
         " -- <wait>",
         "<enter><wait>"
       ]
